@@ -1,0 +1,128 @@
+# how cart deals with missing values?
+# a detailed implementation
+
+# cons
+# tree-models are intuitive, easy explanation
+
+# cons
+# tends to overfit the training data, which leads to poor prediction accuracy in the testing data, why?
+
+# biased toward variables that allow more splits
+
+# cost function: RSS (residual sum of squares)
+
+$\sum_{j=1}^J\sum_{i\in R_j}(y_i-\hat{y}_{R_j})^2$
+$\hat{y}_{R_j}$ is the mean response for observations within the $j$th box.
+
+# recursive binary splitting
+
+1. select the predictor Xj and the cutpoint s such that splitting the predictor space into the regions {X|Xj < s} and {X|Xj ≥ s} leads to the greatest possible reduction in RSS.
+2. repeat the process, looking for the best predictor and best cutpoint in order to split the data further so as to minimize the RSS within each of the resulting regions, we have three regions.
+3. split one of these three regions further, so as to minimize the RSS. 
+4. the process continues until a stopping criterion is reached; for instance, we may continue until no region contains more than five observations.
+
+# cost complexicity prunning
+
+with a given value of $\alpha$, find a subtree $T$ such as $RSS^{new}$ is the smallest.
+$RSS^{new} = \sum_{m=1}^{|T|}\sum_{x_i\in R_m}(y_i-\hat{y}_{R_m})^2 + \alpha |T|$
+
+$\alpha$ controls a trade-off between the subtree's complexicity and its fit to the training data.
+$\alpha$ is found using cross-validation.
+
+# classification tree where response variables are qualitative
+
+# cost function: CER (classification error rate)
+# CER: fraction of the training observations in a given region that do not belong to the most common class
+
+$CER = 1 - max_k(\hat{p}_{mk})$
+$\hat{p}_{mk}$ is the proportion of training observations in the $m$th region that are from the $k$th class
+
+# alternative cost functions for classification tree: Gini index and cross-entropy
+
+# example: regression tree
+
+```{r}
+
+library(tree)
+
+real.estate <- read.table("~/GitHub/cart/cadata.dat", header=TRUE)
+tree.model <- tree(log(MedianHouseValue) ~ Longitude + Latitude, data=real.estate)
+summary(tree.model)
+
+plot(tree.model); text(tree.model, cex=.75)
+
+price.deciles <- quantile(real.estate$MedianHouseValue, 0:10/10)
+cut.prices    <- cut(real.estate$MedianHouseValue, price.deciles, include.lowest=TRUE)
+
+plot(real.estate$Longitude, real.estate$Latitude, col="white", xlab="Longitude", ylab="Latitude")
+partition.tree(tree.model, ordvars=c("Longitude","Latitude"), add=TRUE)
+
+plot(real.estate$Longitude, real.estate$Latitude, col=grey(10:1/11)[cut.prices], pch=20, xlab="Longitude",ylab="Latitude");
+partition.tree(tree.model, ordvars=c("Longitude","Latitude"), add=TRUE)
+
+```
+
+# example: classification tree
+
+```{r}
+
+library(tree)
+
+set.seed(1)
+alpha <- 0.7 # percentage of training set
+index <- sample(1:nrow(iris), alpha * nrow(iris))
+train <- iris[index,]
+test  <- iris[-index,]
+
+tree.model <- tree(Species ~ Sepal.Width + Petal.Width, data = train)
+summary(tree.model)
+
+plot(tree.model); text(tree.model)
+
+mypredict <- predict(tree.model, test) # gives the probability for each class
+head(mypredict)
+
+mypredict.point <- colnames(mypredict)[apply(mypredict, 1, function(x) which.max(x))]
+table(mypredict.point, test$Species)
+
+plot(iris$Petal.Width, iris$Sepal.Width, pch=19, col=as.numeric(iris$Species));
+partition.tree(tree.model, label="Species", add=TRUE);
+legend("topright",legend=unique(iris$Species), col=unique(as.numeric(iris$Species)), pch=19)
+
+tree.prune = cv.tree(tree.model)
+plot(tree.prune)
+
+cv.model.pruned <- prune.tree(tree.model, best=3)
+summary(cv.model.pruned)
+plot(cv.model.pruned); text(cv.model.pruned)
+
+```
+
+# package "rpart"
+
+```{r}
+
+library(rpart)
+
+rpart.tree <- rpart(Species ~ ., data = train)
+rpart.tree <- rpart(Species ~ Sepal.Width + Petal.Width, data = train)
+
+plot(rpart.tree, uniform=TRUE, branch=0.6, margin=0.05);
+text(rpart.tree, all=TRUE, use.n=TRUE)
+
+predictions <- predict(rpart.tree, test, type="class")
+table(test$Species, predictions)
+
+```
+
+# package "party" graph better
+
+```{r}
+
+library(partykit)
+
+rparty.tree <- as.party(rpart.tree)
+plot(rparty.tree)
+rparty.tree
+
+```
