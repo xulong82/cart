@@ -1,43 +1,119 @@
-# how cart deals with missing values?
-# a detailed implementation
+# cart: classification tree for categorical target variable & regression tree for continuous target variable
+
+# pros
+- tree-models are intuitive, easy explanation
+- handles non-linear relationship between dependent and independent variables
+- immune to outliers and missing values to a fair degree
+- non-parametric so it requires no assumptions about distribution of the dependent and independent variables
+- this could also be a cons in that:
 
 # cons
-# tree-models are intuitive, easy explanation
+- tends to overfit the training data (cos of subset fitting), which leads to poor prediction accuracy in the testing data
+- overfitting issue can be alleviated by ensemble trees approaches (random forest)
+- biased toward variables that allow more splits
+- tree model loses information on continuous variables by categorization / binary partition
+- if relationship between variables fits a parametric model (e.g. linear model), the parametric models will outperform tree models
 
-# cons
-# tends to overfit the training data, which leads to poor prediction accuracy in the testing data, why?
+# key problem: identify the variable and the split value to define the most homogeneous sub-nodes
 
-# biased toward variables that allow more splits
+# key technical driver: cost functions
 
-# cost function: RSS (residual sum of squares)
+# Gini index (categorical target variable)
 
-$\sum_{j=1}^J\sum_{i\in R_j}(y_i-\hat{y}_{R_j})^2$
-$\hat{y}_{R_j}$ is the mean response for observations within the $j$th box.
+- Gini for a node equals $p^2+(1-p)^2$, where $p$ is success probability for a given node
+- Gini for split is a weighted (by sample proportion) sum of Gini scores for each node of the given split
+
+$\frac{N_1}{N} * G_1 + \frac{N_2}{N} * G_2$, where N is the total sample size, N1 and N2 are sample size of node 1 and 2
+
+```{r}
+p = seq(0.01, 1, 1e-2) 
+gini = p^2 + (1-p)^2
+plot(p, gini)
+```
+
+# Chi-square (categorical target variable)
+
+- a contingency table of chi-square statistic with nodes as rows and target variable categories as columns
+- $\chi^2$ of each cell equals $\sqrt\frac{(actual - expected)^2}{expected}$
+- better partition leads to larger $\chi^2$
+
+# cer (classification error rate)
+
+- cer: fraction of the training observations in a given region that do not belong to the most common class
+- $CER = 1 - max_k(\hat{p}_{mk})$
+- $\hat{p}_{mk}$ is the proportion of training observations in the $m$th region that are from the $k$th class
+
+# information theory and entropy (categorical target variable)
+
+- information theory is a measure to define the degree of disorganization in a system, i.e. entropy
+- entropy is close to Gini index, with opposite direction
+- entropy for split is a weighted (by sample proportion) sum of entropy for each node of the given split
+
+$E = -p*log_2(p)-(1-p)*log_2(1-p)$
+
+```{r}
+p = seq(0.01, 1, 1e-2) 
+e = -p*log2(p) - (1-p)*log2(1-p)
+plot(p, e)
+```
+
+# rss (residual sum of squares, continuous target variable)
+
+- $\sum_{j=1}^J\sum_{i\in R_j}(y_i-\hat{y}_{R_j})^2$
+- $\hat{y}_{R_j}$ is the mean response for observations within the $j$th box.
+
+# reduction in variance
+
+- $var = \frac{\sum{(X - \bar{X})^2}}{N}$
+- residule sum of squares and reduction in variances are similar
 
 # recursive binary splitting
 
-1. select the predictor Xj and the cutpoint s such that splitting the predictor space into the regions {X|Xj < s} and {X|Xj ≥ s} leads to the greatest possible reduction in RSS.
-2. repeat the process, looking for the best predictor and best cutpoint in order to split the data further so as to minimize the RSS within each of the resulting regions, we have three regions.
-3. split one of these three regions further, so as to minimize the RSS. 
-4. the process continues until a stopping criterion is reached; for instance, we may continue until no region contains more than five observations.
+1. select the predictor and the cutpoint such that splitting the predictor space into 2 sub-nodes optimize the cost function;
+2. repeat the process, looking for the best predictor and best cutpoint in order to split the data further;
+3. the process continues until a stopping criterion is reached
 
-# cost complexicity prunning
+# prunning can decrease overfitting
 
-with a given value of $\alpha$, find a subtree $T$ such as $RSS^{new}$ is the smallest.
-$RSS^{new} = \sum_{m=1}^{|T|}\sum_{x_i\in R_m}(y_i-\hat{y}_{R_m})^2 + \alpha |T|$
+- this is to replace subtrees with leaves according to a regularized cost function;
+- cost complexicity function as the cost function is widely used;
+- $RSS^{new} = \sum_{m=1}^{|T|}\sum_{x_i\in R_m}(y_i-\hat{y}_{R_m})^2 + \alpha |T|$;
+- $\alpha$ controls a trade-off between the subtree's complexicity and its fit to the training data;
+- $\alpha$ is found using cross-validation.
 
-$\alpha$ controls a trade-off between the subtree's complexicity and its fit to the training data.
-$\alpha$ is found using cross-validation.
+# ensemble trees to increase prediction accuracy, but less intuitive
 
-# classification tree where response variables are qualitative
+# bagging (bootstrap aggregation)
 
-# cost function: CER (classification error rate)
-# CER: fraction of the training observations in a given region that do not belong to the most common class
+1. create multiple datasets (sampling with replacement)
+2. build classifier on each dataset
+3. make predictions on each classifier
+4. final predictions are made by using mean, median, or mode value of individual predictions
 
-$CER = 1 - max_k(\hat{p}_{mk})$
-$\hat{p}_{mk}$ is the proportion of training observations in the $m$th region that are from the $k$th class
+# random forest (rf) - an all-purpose method
 
-# alternative cost functions for classification tree: Gini index and cross-entropy
+- similar with bagging with one exception: rf use a small fraction of predictors as candidate splitters
+- this is to make more diverse trees by using different splitters
+- especially useful where there are variables that are highly correlated
+
+# variable importance measure (vim) in rf
+
+- the ensemble methods come with poor interpretation (almost a black box)
+- variable importance, together with the partitioning process, are hidden in the forest
+- this is where variable importance measure (vim) comes to play
+- there are simple (selection frequency) and complicated ways to derive vim
+- permutation accuracy importance is the most accepted
+- it permutates a given variable and compute prediction accuracy drop as the importance measure
+- vim can be biased because of variable selection bias (more detail below) and the bootstrapping procedure
+- bootstrap (sampling with replacement) affect vim because the sub-samples by bootstrapping tend to show spurious associations
+- and the spurious association is more pronounced for variables with more categories
+
+# variable selection bias
+
+- variables of more splitting options are more likely to be selected simply by chance
+- conditional inference test (ci, party) and $\chi^2$ test (guide) for variable selection avoid this issue
+- ci is a permutation-based significance test that obtains null distributions of test statistics ($R^2$, $\chi^2$) by permutations  
+- $\chi^2$ test handles number of categories of each variable as the degree of freedom (df) parameter
 
 # example: regression tree
 
@@ -79,11 +155,11 @@ summary(tree.model)
 
 plot(tree.model); text(tree.model)
 
-mypredict <- predict(tree.model, test) # gives the probability for each class
-head(mypredict)
+predicted <- predict(tree.model, test) # gives the probability for each class
+head(predicted)
 
-mypredict.point <- colnames(mypredict)[apply(mypredict, 1, function(x) which.max(x))]
-table(mypredict.point, test$Species)
+predict.point <- colnames(mypredict)[apply(mypredict, 1, function(x) which.max(x))]
+table(predict.point, test$Species)
 
 plot(iris$Petal.Width, iris$Sepal.Width, pch=19, col=as.numeric(iris$Species));
 partition.tree(tree.model, label="Species", add=TRUE);
@@ -110,12 +186,12 @@ rpart.tree <- rpart(Species ~ Sepal.Width + Petal.Width, data = train)
 plot(rpart.tree, uniform=TRUE, branch=0.6, margin=0.05);
 text(rpart.tree, all=TRUE, use.n=TRUE)
 
-predictions <- predict(rpart.tree, test, type="class")
-table(test$Species, predictions)
+predicted <- predict(rpart.tree, test, type="class")
+table(test$Species, predicted)
 
 ```
 
-# package "party" graph better
+# package "party"
 
 ```{r}
 
@@ -126,3 +202,31 @@ plot(rparty.tree)
 rparty.tree
 
 ```
+
+# random forest 
+
+```{r}
+
+library(randomForest)
+
+set.seed(1)
+alpha <- 0.7 # percentage of training set
+index <- sample(1:nrow(iris), alpha * nrow(iris))
+train <- iris[index,]
+test  <- iris[-index,]
+
+rf.model <- randomForest(Species ~ Sepal.Width + Petal.Width, data = train)
+summary(rf.model)
+
+plot(rf.model)
+
+predicted <- predict(rf.model, test)
+head(predicted)
+
+table(predicted, test$Species)
+
+```
+
+# to do
+
+- use stepwise AIC, lasso, and random forest to define important variables of the GOYA trial
