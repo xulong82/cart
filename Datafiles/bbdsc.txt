@@ -1,0 +1,29 @@
+bbdat.txt
+NA
+1
+1 Id x
+2 Name x
+3 Bat86 n
+4 Hit86 n
+5 Hr86 n
+6 Run86 n
+7 Rb86 n
+8 Wlk86 n
+9 Yrs n
+10 Batcr n
+11 Hitcr n
+12 Hrcr n
+13 Runcr n
+14 Rbcr n
+15 Wlkcr n
+16 Leag86 b
+17 Div86 b
+18 Team86 c
+19 Pos86 c
+20 Puto86 n
+21 Asst86 n
+22 Err86 n
+23 Salary x
+24 Leag87 b
+25 Team87 c
+26 Logsalary d

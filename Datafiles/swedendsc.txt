@@ -1,0 +1,11 @@
+swedendat.txt
+?
+1
+1 mileagegp s
+2 zone c
+3 bonus f
+4 make c
+5 insured x
+6 lninsured z
+7 claims d
+8 payments x

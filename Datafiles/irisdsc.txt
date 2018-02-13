@@ -1,0 +1,8 @@
+irisdata.txt
+"?"
+1
+1 sepallen n
+2 sepalwid n
+3 petallen n
+4 petalwid n
+5 class d

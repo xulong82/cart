@@ -1,0 +1,14 @@
+concrete.csv
+NA
+1
+1 No x
+2 Cement n
+3 Slag n
+4 FlyAsh n
+5 Water n
+6 SP n
+7 CoarseAggr n
+8 FineAggr n
+9 Slump d
+10 Flow d
+11 Strength d

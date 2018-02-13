@@ -1,0 +1,23 @@
+hep.dat
+"?"
+1
+     1  CLASS  d
+     2  AGE  n
+     3  SEX  c
+     4  STEROID  c
+     5  ANTIVIRALS  c
+     6  FATIGUE  c
+     7  MALAISE  c
+     8  ANOREXIA  c
+     9  BIGLIVER  c
+    10  FIRMLIVER  c
+    11  SPLEEN  c
+    12  SPIDERS  c
+    13  ASCITES  c
+    14  VARICES  c
+    15  BILIRUBIN  n
+    16  ALKPHOSPHATE  n
+    17  SGOT  n
+    18  ALBUMIN  n
+    19  PROTIME  n
+    20  HISTOLOGY c 

@@ -1,0 +1,27 @@
+drive.txt
+"*"
+1
+1  Region x
+2  Import x
+3  Make c
+4  Model x
+5  Type c
+6  Drive d
+7  SC x
+8  SUV x	
+9  Wagon x
+10 Minivan x
+11 Pickup x
+12 Allwheel x
+13 Rearwheel x
+14 Rprice n	
+15 Dcost n	
+16 Enginsz n	
+17 Cylin n	
+18 Hp n		
+19 City n
+20 Hwy n	
+21 Weight n	
+22 Whlbase n	
+23 Length n	
+24 Width n      
