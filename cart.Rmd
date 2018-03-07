@@ -206,7 +206,6 @@ rparty.tree
 # random forest 
 
 ```{r}
-
 library(randomForest)
 
 set.seed(1)
@@ -224,7 +223,6 @@ predicted <- predict(rf.model, test)
 head(predicted)
 
 table(predicted, test$Species)
-
 ```
 
 # to do
