@@ -141,7 +141,6 @@ partition.tree(tree.model, ordvars=c("Longitude","Latitude"), add=TRUE)
 # example: classification tree
 
 ```{r}
-
 library(tree)
 
 set.seed(1)
@@ -171,7 +170,6 @@ plot(tree.prune)
 cv.model.pruned <- prune.tree(tree.model, best=3)
 summary(cv.model.pruned)
 plot(cv.model.pruned); text(cv.model.pruned)
-
 ```
 
 # package "rpart"
